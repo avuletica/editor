@@ -1,0 +1,13 @@
+Display line numbers = 2
+Display status Bar = 2
+Remember sesion = 2
+Tab width = 4
+Insert space insted = 2
+Highlight current line = 2
+Autosave = 0
+Autosave minutes = 2
+Font size = 15
+Launch in fullscreen = False
+Launch maximized = False
+Launch in window mode = True
+Last sesion = /home/ante/Ceditor project/Vjezbe za ispit/ispit_primjer5.c
