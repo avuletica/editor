@@ -39,7 +39,7 @@ class TitleBar(QtWidgets.QDialog):
 		self.maximize.setMinimumWidth(24)
 
 		label=QtWidgets.QLabel(self)
-		label.setText("VuText")
+		label.setText("NoName")
 		label.setToolTip("Author: Josip Vuletić Antić")
 		self.setWindowTitle("Window Title")
 		hbox=QtWidgets.QHBoxLayout(self)
@@ -69,7 +69,7 @@ class TitleBar(QtWidgets.QDialog):
 	def close(self):
 		try:
 			f = open("Settings.txt","a")
-			location = ceditor.statusbarlabel.text()
+			location = ceditor.statusbarLocationLabel.text()
 			f.write("\nLast sesion = ")
 			f.write(location)
 			f.close()
@@ -352,6 +352,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 		selection-background-color: rgba(191, 191, 191, 189);
 		background: #272822;color: rgb(255, 255, 255);'''
 
+		self.setStyleSheet("QStatusBar::item { border: 0px;};   ")
+		#self.statusbar.setAlignment(QtCore.Qt.AlignVCenter)
+
 		self.plainTextEdit.setStyleSheet(style)
 		self.lineTextEdit.setStyleSheet(style)
 		self.SearchTextEdit.setStyleSheet(style)
@@ -373,16 +376,40 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 		self.BuildTextEdit.hide()
 		self.statusbar = QtWidgets.QStatusBar(MainWindow)
 		self.statusbar.setObjectName("statusbar")
-		self.statusbarlabel = QtWidgets.QLabel(MainWindow)
-		self.statusbarlabel.setGeometry(QtCore.QRect(180, 90, 68, 20))
-		self.statusbarlabel.setObjectName("statusbarlabel")
-		self.statusbar.insertPermanentWidget(0,self.statusbarlabel,0)
-		self.statusbarlabel.setStyleSheet("color: rgb(255, 255, 255)")
-		self.statusbar.setStyleSheet("background: #555555")
+		self.statusbar.setStyleSheet("background: #555555;color: white")
+
+		self.statusbarLocationLabel = QtWidgets.QLabel(MainWindow)
+		self.statusbarLocationLabel.setGeometry(QtCore.QRect(180, 90, 68, 20))
+		self.statusbarLocationLabel.setObjectName("statusbarLocationLabel")
+		self.statusbar.insertPermanentWidget(2,self.statusbarLocationLabel,0)
+		self.statusbarLocationLabel.setStyleSheet("color: rgb(255, 255, 255);")
+		
+
+
+		self.statusbarLineLabel = QtWidgets.QLabel(MainWindow)
+		self.statusbarLineLabel.setAlignment(QtCore.Qt.AlignVCenter)
+		self.statusbarLineLabel.setGeometry(QtCore.QRect(180, 90, 68, 20))
+		self.statusbarLineLabel.setObjectName("statusbarLineLabel")
+
+		self.statusbar.insertPermanentWidget(0,self.statusbarLineLabel,0)
+		self.statusbarLineLabel.setStyleSheet("color: rgb(255, 255, 255);")
+		
+		
+
+		self.statusbarColumnLabel = QtWidgets.QLabel(MainWindow)
+		self.statusbarColumnLabel.setGeometry(QtCore.QRect(180, 90, 68, 20))
+		self.statusbarColumnLabel.setObjectName("statusbarColumnLabel")
+		self.statusbar.insertPermanentWidget(1,self.statusbarColumnLabel,50)
+		self.statusbarColumnLabel.setStyleSheet("color: rgb(255, 255, 255);")
+		
+		
+
+		
 	   
 		MainWindow.setStatusBar(self.statusbar)
 		self.plainTextEdit.textChanged.connect(self.LineNumberArea)
 		self.plainTextEdit.cursorPositionChanged.connect(self.HighlightLine)
+		self.plainTextEdit.cursorPositionChanged.connect(self.ShowColumn)
 		self.plainTextEdit.verticalScrollBar().valueChanged.connect(self.SyncScrollBar)
 		MainWindow.setCentralWidget(self.centralwidget)
 
@@ -490,7 +517,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 	def NewFile(self):
 		check = QtWidgets.QMessageBox.information(self,"Warrning",
 		"Do you wish to save current file?",QtWidgets.QMessageBox.Yes,QtWidgets.QMessageBox.No)
-		exists = self.statusbarlabel.text() #checking for location of file
+		exists = self.statusbarLocationLabel.text() #checking for location of file
 		
 		if(check == QtWidgets.QMessageBox.Yes): 
 			if(exists):
@@ -499,13 +526,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 				self.SaveFileAs()  
 	   
 		self.plainTextEdit.clear()
-		self.statusbarlabel.clear()
+		self.statusbarLocationLabel.clear()
 
 	def OpenFile(self):   
 		filename = QtWidgets.QFileDialog.getOpenFileName(self,"Open File","")
 		filename = filename[0]  
 		if(filename): # checks if string is empty
-			self.statusbarlabel.setText(filename)      
+			self.statusbarLocationLabel.setText(filename)      
 			f = open(filename, 'r')
 			filedata = f.read()
 			self.plainTextEdit.setPlainText(filedata)
@@ -516,14 +543,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 	def SaveFileAs(self):
 		filename = QtWidgets.QFileDialog.getSaveFileName(self,"Save File","")
 		filename = filename[0]
-		self.statusbarlabel.setText(filename)
+		self.statusbarLocationLabel.setText(filename)
 		f = open(filename, 'w')
 		filedata = self.plainTextEdit.toPlainText()
 		f.write(filedata)
 		f.close()
 
 	def SaveFile(self):
-		filename = self.statusbarlabel.text()
+		filename = self.statusbarLocationLabel.text()
 		try:
 			f = open(filename, 'w')
 			filedata = self.plainTextEdit.toPlainText()
@@ -644,7 +671,22 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 		cdialog.buttonBox.accepted.connect(self.ShowLineNumbering)
 		cdialog.buttonBox.accepted.connect(self.ShowStatusBar)
 		cdialog.buttonBox.accepted.connect(self.SetTabWidth)
-		cdialog.buttonBox.accepted.connect(self.SpaceInsted)   
+		cdialog.buttonBox.accepted.connect(self.SpaceInsted)
+		cdialog.buttonBox.rejected.connect(self.ClassicStyle)   
+
+	def ClassicStyle(self):
+		fontsize = cdialog.spinBox_2.value()
+		fontsize = "font: "+ str(fontsize)+"pt;"
+		classic = '''
+		selection-background-color: rgba(191, 191, 191, 189);
+		background: #272822; color: rgb(255, 255, 255);'''
+		classic = classic + fontsize
+		self.lineTextEdit.setStyleSheet(classic)
+		self.plainTextEdit.setStyleSheet(classic)
+		self.BuildTextEdit.setStyleSheet(classic)
+		#self.statusbar.setStyleSheet('''
+		#selection-background-color: rgba(191, 191, 191, 189);
+		#color: rgb(255, 255, 255);background: #555555;''')
 
 	def CallSettings(self):
 		position = self.plainTextEdit.verticalScrollBar().sliderPosition() #scroll-bar position reset on last session
@@ -740,6 +782,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 			extraSelections.append(selection)
 
 			self.lineTextEdit.setExtraSelections(extraSelections)
+			#self.plainTextEdit.textCursor().blockNumber()+1
 		else:
 			empty = []
 			selection = QtWidgets.QTextEdit.ExtraSelection()
@@ -747,8 +790,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 			self.lineTextEdit.setExtraSelections(empty)
 
 	#---- Algorithm for printing line numbers ----
-	def LineNumberArea(self):   
-		self.Highlighter()
+	def LineNumberArea(self):  
+		self.SyntaxHighlight()
 		text = self.plainTextEdit.toPlainText()
 		count = 1+sum(item.count('\n') for item in text)
 
@@ -768,7 +811,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
 		self.plainTextEdit.setFocus()
 
-	def Highlighter(self):
+	def SyntaxHighlight(self):
 		extraSelections = []
 		resetscroll = self.plainTextEdit.verticalScrollBar().sliderPosition()
 		reset = self.plainTextEdit.textCursor()
@@ -825,8 +868,33 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 			self.plainTextEdit.setExtraSelections(extraSelections)
 			self.plainTextEdit.setTextCursor(reset)  
 
-		self.plainTextEdit.verticalScrollBar().setValue(resetscroll) 
+		'''
+		self.plainTextEdit.moveCursor(QtGui.QTextCursor.Start) 
+		try:
+			
+			self.plainTextEdit.moveCursor(self.plainTextEdit.find("/*"),QtGui.QTextCursor.MoveAnchor)			
+			self.plainTextEdit.moveCursor(self.plainTextEdit.find("*/") ,QtGui.QTextCursor.KeepAnchor)
+			
+			
 
+			
+			cursor = self.plainTextEdit.textCursor()       
+			currentWord = QtWidgets.QTextEdit.ExtraSelection()
+			yellowColor = QtGui.QColor("yellow")
+			currentWord.format.setForeground(yellowColor)
+			currentWord.cursor = cursor
+			
+			extraSelections.append(currentWord)
+
+		
+		except:
+			pass
+
+		self.plainTextEdit.setExtraSelections(extraSelections)
+		self.plainTextEdit.setTextCursor(reset)
+		
+		self.plainTextEdit.verticalScrollBar().setValue(resetscroll) 
+		'''
 	def LaunchOptions(self):
 		if(cdialog.radioButton.isChecked()):
 			cwindow.showFullScreen()
@@ -857,9 +925,9 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 					item = line.split("=")
 					items.append(item[1].strip())
 
-				self.statusbarlabel.setText(items[12])
+				self.statusbarLocationLabel.setText(items[12])
 				f.close()
-				filename = self.statusbarlabel.text()
+				filename = self.statusbarLocationLabel.text()
 				f = open(filename, 'r')
 				filedata = f.read()
 				self.plainTextEdit.setPlainText(filedata)           
@@ -875,7 +943,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 	def ShowBuild(self):
 		self.BuildTextEdit.show()
 		old_location = os.getcwd() # Current working directory
-		location = self.statusbarlabel.text()
+		location = self.statusbarLocationLabel.text()
 
 		if(location):
 			start = location.rfind('/')
@@ -912,9 +980,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 		os.chdir(old_location)
 
 	def Run(self):
+					
+		self.plainTextEdit.setExtraSelections(extraSelections)
+		self.plainTextEdit.setTextCursor(reset)
+		
 		self.BuildTextEdit.show()
 		old_location = os.getcwd() # Current working directory
-		location = self.statusbarlabel.text()
+		location = self.statusbarLocationLabel.text()
 		start = location.rfind('/')		
 		location = location[:start]
 		os.chdir(location)		
@@ -970,7 +1042,15 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 			self.lineTextEdit.setStyleSheet(Azura)
 			self.plainTextEdit.setStyleSheet(Azura)
 			self.BuildTextEdit.setStyleSheet(Azura)
+	def ShowColumn(self):
+		
+		
+		column = 'Column:' + str(self.plainTextEdit.textCursor().positionInBlock())
+		self.statusbarColumnLabel.setText(column)
 
+		line = 'Line:' + str(self.plainTextEdit.textCursor().blockNumber()+1)
+		self.statusbarLineLabel.setText(line)
+		
 
 class CustomWindow(QtWidgets.QWidget):
 	def __init__(self): 
@@ -991,6 +1071,7 @@ class CustomWindow(QtWidgets.QWidget):
 			
 #-------- M A I N --------
 app = QtWidgets.QApplication(sys.argv)
+#app.setStyleSheet("QStatusBar::item { border: 0px  }; ");
 cdialog = Ui_Dialog()
 ceditor = Ui_MainWindow()
 titleBar = TitleBar()
